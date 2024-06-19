@@ -2,6 +2,8 @@ package com.medicare.configs;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -11,14 +13,20 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
 @Configuration
 public class AppConfig {
-    @Bean
-    public UserDetailsService userDetailsService(){
-        UserDetails user = User.builder().username("mannan").password(passwordEncoder().encode("abc")).roles("ADMIN").build();
-        return new InMemoryUserDetailsManager(user);
-    }
+//    @Bean
+//    public UserDetailsService userDetailsService(){
+//        UserDetails user = User.builder().username("mannan").password(passwordEncoder().encode("abc")).roles("ADMIN").build();
+//        return new InMemoryUserDetailsManager(user);
+//    }
 
     @Bean
     public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
     }
+
+//    @Bean
+//    public AuthenticationManager authenticationManager(AuthenticationManager builder){
+//        return  builder.getAuthenticationManager();
+//    }
+
 }

@@ -19,6 +19,6 @@ public class UserController {
 
     @GetMapping("/user")
     public UserModel getUserByEmail(@RequestBody String userInputEmail) {
-        return userRepo.findByUsername(userInputEmail);
+        return userRepo.findUserByEmail(userInputEmail);
     }
 }

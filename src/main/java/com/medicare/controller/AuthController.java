@@ -4,6 +4,8 @@ package com.medicare.controller;
 import com.medicare.jwt.JwtHelper;
 import com.medicare.model.JwtRequest;
 import com.medicare.model.JwtResponse;
+import com.medicare.model.UserModel;
+import com.medicare.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,18 +28,18 @@ public class AuthController {
     @Autowired
     private AuthenticationManager manager;
 
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private JwtHelper helper;
 
     private Logger logger = LoggerFactory.getLogger(AuthController.class);
 
-
     @PostMapping("/login")
     public ResponseEntity<JwtResponse> login(@RequestBody JwtRequest request) {
 
         this.doAuthenticate(request.getEmail(), request.getPassword());
-
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
         String token = this.helper.generateToken(userDetails);
@@ -53,17 +55,18 @@ public class AuthController {
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, password);
         try {
             manager.authenticate(authentication);
-
-
         } catch (BadCredentialsException e) {
             throw new BadCredentialsException(" Invalid Username or Password  !!");
         }
+    }
 
+    @PostMapping("/create-user")
+    public UserModel userModel(@RequestBody UserModel userModel) {
+        return userRepository.save(userModel);
     }
 
     @ExceptionHandler(BadCredentialsException.class)
     public String exceptionHandler() {
         return "Credentials Invalid !!";
     }
-
 }
