@@ -2,40 +2,67 @@ package com.medicare.repository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Repository;
 
 import com.medicare.model.UserModel;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
 
 @Repository
 public class UserRepository {
     @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    private static final String FIND_BY_USERNAME_QUERY = "SELECT * FROM users WHERE username = ?";
-    private static final String INSERT_USER_QUERY = "INSERT INTO users (username, password, role) VALUES (?, ?, ?)";
-
-    public UserModel findByUsername(String username) {
-        return jdbcTemplate.queryForObject(FIND_BY_USERNAME_QUERY, new Object[]{username}, new UserRowMapper());
+    public List<UserModel> findAll() {
+        return jdbcTemplate.query("SELECT * FROM user", (rs, rowNum) ->
+                new UserModel(
+                        rs.getInt("User_Id"),
+                        rs.getString("User_Email"),
+                        rs.getString("User_Password"),
+                        rs.getString("User_Role")
+                ));
     }
 
-    public int save(UserModel user) {
-        return jdbcTemplate.update(INSERT_USER_QUERY, user.getUser_Email(), user.getUser_Password(), user.getUser_Role());
+    public UserModel findById(int id) {
+        return jdbcTemplate.queryForObject("SELECT * FROM user WHERE User_Id = ?", new Object[]{id}, (rs, rowNum) ->
+                new UserModel(
+                        rs.getInt("User_Id"),
+                        rs.getString("User_Email"),
+                        rs.getString("User_Password"),
+                        rs.getString("User_Role")
+                ));
     }
 
-    private static final class UserRowMapper implements RowMapper<UserModel> {
-        @Override
-        public UserModel mapRow(ResultSet rs, int rowNum) throws SQLException {
-        	UserModel user = new UserModel();
-            user.setUser_Id(rs.getInt("user_id"));
-            user.setUser_Email(rs.getString("user_email"));
-            user.setUser_Password(rs.getString("user_password"));
-            user.setUser_Role(rs.getString("user_role"));
+    public UserModel findUserByEmail(String email) {
+        return jdbcTemplate.queryForObject("SELECT * FROM user WHERE User_Email = ?", new Object[]{email}, (rs, rowNum) ->
+                new UserModel(
+                        rs.getInt("User_Id"),
+                        rs.getString("User_Email"),
+                        rs.getString("User_Password"),
+                        rs.getString("User_Role")
+                ));
+    }
+
+    public UserModel save(UserModel user) {
+
+
+        user.setUser_Password(passwordEncoder.encode(user.getUser_Password()));
+        int rowsAffected = jdbcTemplate.update(
+                "INSERT INTO user (User_Email, User_Password, User_Role) VALUES (?, ?, ?)",
+                user.getUser_Email(), user.getUser_Password(), user.getUser_Role()
+        );
+
+        // Optionally check if the insertion was successful
+        if (rowsAffected > 0) {
             return user;
+        } else {
+            // Handle the case where the insert failed (e.g., throw an exception)
+            throw new RuntimeException("Failed to insert user into the database");
         }
     }
+
 }
